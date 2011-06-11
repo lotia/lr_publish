@@ -1,0 +1,61 @@
+<?php
+/**
+ * @file
+ * Installation file for the lr_publish module.
+ *
+ * This installation file sets up the database for the lr_publish module.
+ */
+
+/**
+ * Implementation of hook_install()
+ */
+function lr_publish_install() {
+  drupal_set_message((t('Installing lr_publish.')));
+  drupal_install_schema('lr_publish');
+}
+
+/**
+ * Implementation of hook_uninstall()
+ */
+function lr_publish_uninstall() {
+  drupal_uninstall_schema('lr_publish');
+  // remove any configuration values. shamelessly stolen from
+  // http://api.drupal.org/api/drupal/includes--bootstrap.inc/function/variable_del/6#comment-10934
+  $result = db_query("SELECT name from {variables} WHERE name LIKE 'lr_publish_%'");
+  while ($var_name = db_result($result)) {
+    variable_del($var_name);
+  }
+}
+
+/**
+ * Implementation of hook_schema()
+ *
+ * @returns $schema
+ *   An array providing the DB schema definition required by the schema API.
+ */
+function lr_publish_schema() {
+  $schema['lr_publish'] = array(
+    'description' => t('Tracks which Drupal nodes have been published to the registry.'),
+    'fields' => array(
+      'nid' => array(
+        'description' => t('The primary identifier for a node.'),
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,),
+
+      'published' => array(
+        'description' => t('The original date of publication to the LR node.'),
+        'type' => 'int',
+        'not_null' => TRUE,
+        'default' => 0,),
+
+      'updated' => array(
+        'description' => t('The most recent update to the LR node.'),
+        'type' => 'int',
+        'not_null' => TRUE,
+        'default' => 0,),
+    ),
+  );
+
+  return $schema;
+}

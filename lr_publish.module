@@ -1,0 +1,259 @@
+<?php
+
+/**
+ * @file
+ * A module to publish drupal node metadata to a Learning Registry node.
+ *
+ * This module takes the specified node content and publishes it to a
+ * Learning Registry node.
+ */
+
+
+/**
+ * Display help and module information.
+ *
+ * @param string $path
+ *   A string that specifies which path of the site we're displaying help.
+ * @param string $arg
+ *   An array that holds that current path as would be returned from arg().
+ *
+ * @return string $help
+ *   A string that contains the help text for the specified path.
+ */
+function lr_publish_help($path, $arg) {
+  $output = '';
+  switch ($path) {
+    case "admin/help#onthisdate":
+      $output = '<p>' .
+        t("Pushes Drupal node data to the specified Learning Registry node.") .
+        '<p>';
+      break;
+  }
+  return $output;
+} // function lr_publish_help
+
+
+/**
+ * Valid permissions for this module
+ *
+ * @return array
+ *   An array of valid permissions for the lr_publish module.
+ */
+function lr_publish_perm() {
+  return array('administer lr_publish_perm');
+} // function lr_publish_perm
+
+
+/**
+ * Implementation of hook_menu().
+ */
+function lr_publish_menu() {
+  $items['admin/settings/lr_publish'] = array(
+    'title' => t('LR_publish settings.'),
+    'description' => t('Publish selected node metadata to a Learning Regsistry node.'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('lr_publish_admin_settings'),
+    'access arguments' => array('access administration pages'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'lr_publish.admin.inc',
+  );
+
+  return $items;
+}
+
+
+/**
+ * Implementation of hook_nodeapi()
+ */
+function lr_publish_nodeapi(&$node, $op) {
+  $nodes_to_publish = variable_get('lr_publish_node_types', array());
+  if (in_array($node->type, $nodes_to_publish) &&
+    $node->nid);
+  switch($op) {
+    case 'insert':
+      if ($node->status == 1) {
+        _lr_publish_publish($node);
+      }
+      break;
+    // case 'update':
+    //   if ($node->status == 0) {
+    //     _lr_publish_set_deleted($node);
+    //   }
+    //   else if ($node->status == 1) {
+    //     _lr_publish_update($node);
+    //   }
+    //   break;
+    // case 'delete':
+    //   _lr_publish_set_deleted($node);
+    //   break;
+  }
+}
+
+
+/**
+ * Publish node metadata to specified Learning Registry node.
+ *
+ * @param object &$node
+ *   A reference to the node object. We have to be very careful to not set
+ *   anything, only read from the node object reference since the node
+ *   reference allows us to edit the node content.
+ */
+function _lr_publish_publish(&$node) {
+  return;
+}
+
+
+/**
+ * Sets the deleted status for a deleted Drupal node in the LR node.
+ *
+ * @param object &$node
+ *   A reference to the node object. We have to be very careful to not set
+ *   anything, only read from the node object reference since the node
+ *   reference allows us to edit the node content.
+ */
+function _lr_publish_set_deleted(&$node) {
+  return;
+}
+
+
+/**
+ * Update the info published to the node.
+ *
+ * @param object &$node
+ *   A reference to the node object. We have to be very careful to not set
+ *   anything, only read from the node object reference since the node
+ *   reference allows us to edit the node content.
+ */
+function _lr_publish_update(&$node) {
+  return;
+}
+
+
+/**
+ * Make the curl calls to send to the LR node.
+ *
+ * All the specified nodeapi operations ($ops) call this function to actually send the data.
+ *
+ * @param string $json
+ *    A string containing the json object that will be sent to the registry node.
+ */
+function _lr_send_to_registry($json) {
+  return;
+}
+
+
+/**
+ * Define the Learning Registry resource data.
+ *
+ * @param array $content_info
+
+ * @returns object $resource_data
+ */
+function _def_resource_data ($content_info) {
+  // values specified as immutable in the LR spec.
+  define("LR_DOC_TYPE", "resource_data");
+  define("LR_DOC_VERSION", "0.21.0");
+  define("LR_SUBMITTER_TYPE", "agent");
+  define("LR_SUBMISSION_TOS", "yes");
+  // commented since we aren't signing submissions
+  // define("LR_SIGNING_METHOD", "LR-PGP.1.0");
+  define("LR_PAYLOAD_PLACEMENT", "inline");
+
+  $opt_id_fields = array(
+    'curator',
+    'owner',
+    'signer',
+  );
+
+  $opt_res_fields = array(
+    'doc_ID',
+    'submitter_timestamp',
+    'submitter_TTL',
+    'keys',
+    'resource_TTL',
+    'payload_schema_locator',
+    'payload_schema_format',
+  );
+
+  // we don't really do much with these since we aren't currently signing
+  // submissions.
+  $opt_sig_fields = array(
+    'signature',
+    'key_server',
+    'key_locations',
+    'key_owner',
+    'signing_method',
+  );
+
+  $opt_tos_fields = array(
+    'tos_submission_attribution', // need to figure out more about this value.
+  );
+  $identity->submitter_type = LR_SUBMITTER_TYPE;
+  $identity->submitter = $content_info["submitter"];
+
+  // not sure what the value for this should be, does it depend on the LR
+  // node,currently set to "yes" to indicate agreement?
+  $tos->submission_TOS = LR_SUBMISSION_TOS;
+
+  //TODO: extract these foreach calls into their own function
+  // Add the optional keys / objects if they are passed in $content_info
+
+  // optional identity values.
+  foreach ($opt_id_fields as $field) {
+    if ($array_key_exists($field, $content_info)) {
+      $identity->$field = $content_info[$field];
+    }
+  }
+
+  // optional resource_data values
+  foreach ($opt_res_fields as $field) {
+    if ($array_key_exists($field, $content_info)) {
+      $resource_data->$field = $content_info[$field];
+    }
+  }
+
+  // create an empty stdClass since the digital_signature is completely
+  // optional.
+  $digital_signature = new stdClass;
+  // optional digital signature  values
+  foreach ($opt_sig_fields as $field) {
+    if ($array_key_exists($field, $content_info)) {
+      $digital_signature->$field = $content_info[$field];
+    }
+  }
+
+  // optional TOS values
+  foreach ($opt_tos_fields as $field) {
+    if ($array_key_exists($field, $content_info)) {
+      $tos->$field = $content_info[$field];
+    }
+  }
+
+
+  $resource_data->doc_type = LR_DOC_TYPE;
+  $resource_data->doc_version = LR_DOC_VERSION;
+  $resource_data->resource_data_type = $content_info['resource_data_type'];
+  $resource_data->active = $content_info['active'];
+  $resource_data->identity = $identity;
+  $resource_data->TOS = $tos;
+
+  // only add the signature key if signature data are defined.
+  if (!empty($digital_signature)) {
+    $resource_data->digital_signature = $digital_signature;
+  }
+
+  $resource_data->locator = $content_info['node_url'];
+  $resource_data->payload_placement = LR_PAYLOAD_PLACEMENT;
+  $resource_data->payload_schema = $content_info['payload_schema'];
+  $resource_data->resource_data = $content_info['resource_data'];
+
+  return $resource_data;
+}
+
+
+/**
+ *
+ */
+function _lr_add_resource_data_to_submission($resource_data) {
+
+}

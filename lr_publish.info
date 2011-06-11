@@ -1,0 +1,5 @@
+; description file for lr_publish module
+
+name = LR Publish
+description = Publish drupal node metadata to a Learning Registry node.
+core = 6.x
