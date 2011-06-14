@@ -130,6 +130,37 @@ function _lr_publish_update(&$node) {
 
 
 /**
+ * Return info we submit about nodes to the LR.
+ *
+ * @param object &$node
+ *   A reference to the node object. We have to be very careful to not set
+ *   anything, only read from the node object reference since the node
+ *   reference allows us to edit the node content.
+ */
+function _lr_get_content_info(&$node) {
+  $content_info = array();
+  $content_info['doc_ID'] = _lr_get_node_url($node->nid);
+  // resource_data_type is currently hardcoded, will be fixed in a later version
+  $content_info['resource_data_type'] = 'metadata';
+  $content_info['submitter'] = variable_get('lr_submitter', NULL);
+}
+
+
+/**
+ * Return the absolute URL to a node.
+ *
+ * @param int $nid
+ *   The numerical node id.
+ *
+ * @return string $node_url
+ *   The absolute URL to the node.
+ */
+function _lr_get_node_url($nid) {
+  $url = $GLOBALS['base_url'] . $GLOBALS['base_path'] . "/node/" . $nid;
+  return $url;
+}
+
+/**
  * Make the curl calls to send to the LR node.
  *
  * All the specified nodeapi operations ($ops) call this function to actually send the data.

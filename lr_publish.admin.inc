@@ -33,6 +33,17 @@ function lr_publish_admin_settings() {
     '#required' => TRUE,
   );
 
+  // TODO: figure out if we need to validate this information.
+  $form['lr_submitter'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Submitter'),
+    '#size' => 128,
+    '#maxlength' => 1024,
+    '#default_value' => variable_get('lr_submitter', NULL),
+    '#description' => t('Identifies the submitter of a Learning Registry resource document.'),
+    '#required' => TRUE,
+  );
+
   $form['lr_publish_node_types'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Publish metadata for these content types'),
