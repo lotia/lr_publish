@@ -1,4 +1,4 @@
 # ignore editor backup files
-.~
-~
+.*~
+*~
 \#*\#

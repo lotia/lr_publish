@@ -49,7 +49,7 @@ function lr_publish_perm() {
  */
 function lr_publish_menu() {
   $items['admin/settings/lr_publish'] = array(
-    'title' => t('LR_publish settings.'),
+    'title' => t('LR publish settings'),
     'description' => t('Publish selected node metadata to a Learning Regsistry node.'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('lr_publish_admin_settings'),
@@ -252,8 +252,29 @@ function _def_resource_data ($content_info) {
 
 
 /**
+ * Return a basic LR submission envelope.
  *
+ * @return object $submission
+ *   An empty LR submission envelop.
  */
-function _lr_add_resource_data_to_submission($resource_data) {
+function _lr_build_envelope() {
+  $submission->documents = array();
+  return $submission;
+}
 
+
+/**
+ * Adds resource data to a LR submission envelope.
+ *
+ * @param object $submission
+ *    An LR submission object.
+ * @param object $resource_data
+ *    An LR resource data object.
+ *
+ * @return object $submission
+ *    The submission object with $resource data pushed on to the documents array.
+ */
+function _lr_add_resource_data_to_submission($submission, $resource_data) {
+  $submission->documents[] = $resource_data;
+  return $submission;
 }
