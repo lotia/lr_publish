@@ -102,11 +102,11 @@ function _lr_publish_publish(&$node) {
   $content_info = _lr_get_content_info(&$node);
   $resource_data = _lr_def_resource_data($content_info);
   $empty_submission = _lr_build_envelope();
-  watchdog('lr_publish', json_encode($empty_submission));
+  //watchdog('lr_publish', json_encode($empty_submission));
   $prepared_submission =
     _lr_add_resource_data_to_submission($empty_submission, $resource_data);
   $resource_post_payload = json_encode($prepared_submission);
-  watchdog('lr_publish', $resource_post_payload, array(), WATCHDOG_DEBUG);
+  //watchdog('lr_publish', $resource_post_payload, array(), WATCHDOG_DEBUG);
   _lr_send_to_registry($resource_post_payload);
 }
 
@@ -200,13 +200,23 @@ function _lr_send_to_registry($json) {
     // TODO: allow more than publish! Currently hardcoding the publish
     // bit. this function needs to take an argument to add the appropriate
     // service at the end of the curl URL
-    CURLOPT_URL => variable_get('lr_publish_node_url' . '/publish', NULL),
+    #CURLOPT_URL => variable_get('lr_publish_node_url' . '/publish', NULL),
+    CURLOPT_URL => "http://localhost:5000/publish",
     CURLOPT_POST => TRUE,
     CURLOPT_POSTFIELDS => $json,
+    CURLOPT_RETURNTRANSFER => 1,
+    CURLOPT_HTTPHEADER => "application/json",
   );
-  watchdog('lr_publish', $json, array(), WATCHDOG_DEBUG);
+  file_put_contents("/tmp/foo.json", $json);
+  watchdog('lr_publish', "URL: " . $curl_options[CURLOPT_URL], array(), WATCHDOG_DEBUG);
+  watchdog('lr_publish', "JSON: ". $json, array(), WATCHDOG_DEBUG);
   curl_setopt_array($ch, $curl_options);
-  curl_exec($ch);
+  $return = curl_exec($ch);
+  if ($return === FALSE) {
+    watchdog('lr_publish', "Submission to LR Failed!" . curl_error($ch), array(), WATCHDOG_DEBUG);
+  } else {
+    watchdog('lr_publish', "CURL RETURN: " . $return, array(), WATCHDOG_DEBUG);
+  }
 }
 
 
@@ -312,7 +322,7 @@ function _lr_def_resource_data ($content_info) {
 
   $resource_data->resource_locator = $content_info['resource_locator'];
   $resource_data->payload_placement = LR_PAYLOAD_PLACEMENT;
-  $resource_data->payload_schema = $content_info['payload_schema'];
+  $resource_data->payload_schema = array($content_info['payload_schema']);
   $resource_data->resource_data = $content_info['resource_data'];
 
   return $resource_data;
