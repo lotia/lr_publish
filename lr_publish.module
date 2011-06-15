@@ -205,7 +205,7 @@ function _lr_send_to_registry($json) {
     CURLOPT_POST => TRUE,
     CURLOPT_POSTFIELDS => $json,
     CURLOPT_RETURNTRANSFER => 1,
-    CURLOPT_HTTPHEADER => "application/json",
+    CURLOPT_HTTPHEADER => array("Content-type: application/json",),
   );
   file_put_contents("/tmp/foo.json", $json);
   watchdog('lr_publish', "URL: " . $curl_options[CURLOPT_URL], array(), WATCHDOG_DEBUG);
