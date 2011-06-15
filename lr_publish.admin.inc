@@ -34,12 +34,12 @@ function lr_publish_admin_settings() {
   );
 
   // TODO: figure out if we need to validate this information.
-  $form['lr_submitter'] = array(
+  $form['lr_publish_submitter'] = array(
     '#type' => 'textfield',
     '#title' => t('Submitter'),
     '#size' => 128,
     '#maxlength' => 1024,
-    '#default_value' => variable_get('lr_submitter', NULL),
+    '#default_value' => variable_get('lr_publish_submitter', NULL),
     '#description' => t('Identifies the submitter of a Learning Registry resource document.'),
     '#required' => TRUE,
   );

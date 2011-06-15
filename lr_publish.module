@@ -50,7 +50,7 @@ function lr_publish_perm() {
 function lr_publish_menu() {
   $items['admin/settings/lr_publish'] = array(
     'title' => t('LR publish settings'),
-    'description' => t('Publish selected node metadata to a Learning Regsistry node.'),
+    'description' => t('Publish selected node metadata to a Learning Registry node.'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('lr_publish_admin_settings'),
     'access arguments' => array('access administration pages'),
@@ -99,7 +99,12 @@ function lr_publish_nodeapi(&$node, $op) {
  *   reference allows us to edit the node content.
  */
 function _lr_publish_publish(&$node) {
-  return;
+  $content_info = _lr_get_content_info(&$node);
+  $resource_data = _lr_def_resource_data($content_info);
+  $empty_submission = _lr_build_envelope();
+  $prepared_submission =
+    _lr_add_resource_data_to_submission($submission, $resource_data);
+  $resource_post_payload = json_encode($submission);
 }
 
 
@@ -140,9 +145,27 @@ function _lr_publish_update(&$node) {
 function _lr_get_content_info(&$node) {
   $content_info = array();
   $content_info['doc_ID'] = _lr_get_node_url($node->nid);
+  // TODO: correctly specify resource data type
   // resource_data_type is currently hardcoded, will be fixed in a later version
   $content_info['resource_data_type'] = 'metadata';
-  $content_info['submitter'] = variable_get('lr_submitter', NULL);
+  $content_info['submitter'] = variable_get('lr_publish_submitter', NULL);
+  // currently set curator and submitter the same, once we get a better sense
+  // of what each field means, this will change
+  $content_info['curator'] = $content_info['submitter'];
+  // TODO: correctly set active value, currently hardcoded to TRUE
+  $content_info['active' ] = TRUE;
+  $content_info['resource_locator'] = $content_info['doc_ID'];
+  $content_info['payload_schema'] = "DC 1.1";
+
+  // define the node fields we send.
+  // TODO: actually send a useful subset of fields
+  $resource_data->title = $node->title;
+  $resource_data->creation_timestamp = $node->created;
+  $resource_data->modification_timestamp = $node->changed;
+
+  $content_info['resource_data'] = $resource_data;
+
+  return $content_info;
 }
 
 
@@ -156,7 +179,7 @@ function _lr_get_content_info(&$node) {
  *   The absolute URL to the node.
  */
 function _lr_get_node_url($nid) {
-  $url = $GLOBALS['base_url'] . $GLOBALS['base_path'] . "/node/" . $nid;
+  $url = $GLOBALS['base_url'] . $GLOBALS['base_path'] . "node/" . $nid;
   return $url;
 }
 
@@ -169,7 +192,16 @@ function _lr_get_node_url($nid) {
  *    A string containing the json object that will be sent to the registry node.
  */
 function _lr_send_to_registry($json) {
-  return;
+  $ch = $curl_init();
+  $curl_options = array(
+    // TODO: allow more than publish! Currently hardcoding the publish
+    // bit. this function needs to take an argument to add the appropriate
+    // service at the end of the curl URL
+    CURLOPT_URL => variable_get('lr_publish_node_url' . '/publish'),
+    CURLOPT_POST => TRUE,
+    CURLOPT_POSTFIELDS => $json,
+  );
+  curl_setopt_array();
 }
 
 
@@ -180,7 +212,7 @@ function _lr_send_to_registry($json) {
 
  * @returns object $resource_data
  */
-function _def_resource_data ($content_info) {
+function _lr_def_resource_data ($content_info) {
   // values specified as immutable in the LR spec.
   define("LR_DOC_TYPE", "resource_data");
   define("LR_DOC_VERSION", "0.21.0");
@@ -231,14 +263,14 @@ function _def_resource_data ($content_info) {
 
   // optional identity values.
   foreach ($opt_id_fields as $field) {
-    if ($array_key_exists($field, $content_info)) {
+    if (array_key_exists($field, $content_info)) {
       $identity->$field = $content_info[$field];
     }
   }
 
   // optional resource_data values
   foreach ($opt_res_fields as $field) {
-    if ($array_key_exists($field, $content_info)) {
+    if (array_key_exists($field, $content_info)) {
       $resource_data->$field = $content_info[$field];
     }
   }
@@ -248,14 +280,14 @@ function _def_resource_data ($content_info) {
   $digital_signature = new stdClass;
   // optional digital signature  values
   foreach ($opt_sig_fields as $field) {
-    if ($array_key_exists($field, $content_info)) {
+    if (array_key_exists($field, $content_info)) {
       $digital_signature->$field = $content_info[$field];
     }
   }
 
   // optional TOS values
   foreach ($opt_tos_fields as $field) {
-    if ($array_key_exists($field, $content_info)) {
+    if (array_key_exists($field, $content_info)) {
       $tos->$field = $content_info[$field];
     }
   }
@@ -273,7 +305,7 @@ function _def_resource_data ($content_info) {
     $resource_data->digital_signature = $digital_signature;
   }
 
-  $resource_data->locator = $content_info['node_url'];
+  $resource_data->resource_locator = $content_info['resource_locator'];
   $resource_data->payload_placement = LR_PAYLOAD_PLACEMENT;
   $resource_data->payload_schema = $content_info['payload_schema'];
   $resource_data->resource_data = $content_info['resource_data'];
