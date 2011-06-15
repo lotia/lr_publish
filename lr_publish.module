@@ -200,8 +200,7 @@ function _lr_send_to_registry($json) {
     // TODO: allow more than publish! Currently hardcoding the publish
     // bit. this function needs to take an argument to add the appropriate
     // service at the end of the curl URL
-    #CURLOPT_URL => variable_get('lr_publish_node_url' . '/publish', NULL),
-    CURLOPT_URL => "http://localhost:5000/publish",
+    CURLOPT_URL => variable_get('lr_publish_node_url', NULL) . "/publish",
     CURLOPT_POST => TRUE,
     CURLOPT_POSTFIELDS => $json,
     CURLOPT_RETURNTRANSFER => 1,
