@@ -25,11 +25,11 @@ function lr_publish_admin_settings() {
   $cck_fields = array();
 
   foreach ($options as $option)
-  {
+    {
       $type_names[$option->type] = $option->name;
       $type = content_types($option->type);
       $cck_fields[$option->type] = $type['fields'];
-  }
+    }
 
   $form = array();
 
@@ -62,36 +62,36 @@ function lr_publish_admin_settings() {
     '#description' => t('Metadata for these node types will be published to the specified Learning Registry node.'),
   );
 
-   foreach ($type_names as $type_key => $type_name)
-  {      
+  foreach ($type_names as $type_key => $type_name)
+    {
       if (count($cck_fields[$type_key])) {
-          
-          $cck_checkboxes = array();
 
-          foreach ($cck_fields[$type_key] as $cck_field)
+        $cck_checkboxes = array();
+
+        foreach ($cck_fields[$type_key] as $cck_field)
           {
-              $field_name = $cck_field['field_name'];
-              $cck_checkboxes[$cck_field['field_name']] = $cck_field['widget']['label'];
+            $field_name = $cck_field['field_name'];
+            $cck_checkboxes[$cck_field['field_name']] = $cck_field['widget']['label'];
           }
 
-      $form['lr_publish_node_type_fieldset_' . $type_key] = array(
-    '#type' => 'fieldset',
-    '#title' => t($type_name),
-    '#description' => t('Metadata for these CCK fields will be published to the specified Learning Registry node.'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-  );
+        $form['lr_publish_node_type_fieldset_' . $type_key] = array(
+          '#type' => 'fieldset',
+          '#title' => t($type_name),
+          '#description' => t('Metadata for these CCK fields will be published to the specified Learning Registry node.'),
+          '#collapsible' => TRUE,
+          '#collapsed' => TRUE,
+        );
 
 
 
-      $form['lr_publish_node_type_fieldset_' . $type_key]['lr_publish_node_type_option_' . $type_key] = array(
-    '#type' => 'checkboxes',
-    '#title' => t('Publish these CCK fields for ' . $type_name),
-    '#options' => $cck_checkboxes,
-    '#default_value' => variable_get('lr_publish_node_type_option_' . $type_key, array()),
-  );
-      }      
-  }
+        $form['lr_publish_node_type_fieldset_' . $type_key]['lr_publish_node_type_option_' . $type_key] = array(
+          '#type' => 'checkboxes',
+          '#title' => t('Publish these CCK fields for ' . $type_name),
+          '#options' => $cck_checkboxes,
+          '#default_value' => variable_get('lr_publish_node_type_option_' . $type_key, array()),
+        );
+      }
+    }
 
   return system_settings_form($form);
 }
