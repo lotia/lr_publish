@@ -193,8 +193,23 @@ function _lr_get_node_url($nid) {
  *
  * @param string $json
  *    A string containing the json object that will be sent to the registry node.
+ * @param int $service_num
+ *    An int that specifies the service that will be called.
+ *    0 - publish (default value)
+ *    1 - update
+ *    2 - delete
  */
-function _lr_send_to_registry($json) {
+function _lr_send_to_registry($json, $service_num = 0) {
+  $services = array(
+    'publish',
+    'update',
+    'delete',
+  );
+
+  if ($service_num >= count($services)) {
+    return;
+  }
+
   $ch = curl_init();
   $curl_options = array(
     // TODO: allow more than publish! Currently hardcoding the publish
@@ -207,15 +222,8 @@ function _lr_send_to_registry($json) {
     CURLOPT_HTTPHEADER => array("Content-type: application/json",),
   );
   file_put_contents("/tmp/foo.json", $json);
-  watchdog('lr_publish', "URL: " . $curl_options[CURLOPT_URL], array(), WATCHDOG_DEBUG);
-  watchdog('lr_publish', "JSON: ". $json, array(), WATCHDOG_DEBUG);
   curl_setopt_array($ch, $curl_options);
-  $return = curl_exec($ch);
-  if ($return === FALSE) {
-    watchdog('lr_publish', "Submission to LR Failed!" . curl_error($ch), array(), WATCHDOG_DEBUG);
-  } else {
-    watchdog('lr_publish', "CURL RETURN: " . $return, array(), WATCHDOG_DEBUG);
-  }
+  curl_exec($ch);
 }
 
 
