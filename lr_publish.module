@@ -147,7 +147,7 @@ function _lr_publish_update(&$node) {
  */
 function _lr_get_content_info(&$node) {
   $content_info = array();
-  $content_info['doc_ID'] = _lr_get_node_url($node->nid);
+  $content_info['resource_locator'] = _lr_get_node_url($node->nid);
   // TODO: correctly specify resource data type
   // resource_data_type is currently hardcoded, will be fixed in a later version
   $content_info['resource_data_type'] = 'metadata';
@@ -157,7 +157,6 @@ function _lr_get_content_info(&$node) {
   $content_info['curator'] = $content_info['submitter'];
   // TODO: correctly set active value, currently hardcoded to TRUE
   $content_info['active' ] = TRUE;
-  $content_info['resource_locator'] = $content_info['doc_ID'];
   $content_info['payload_schema'] = "DC 1.1";
 
   // define the node fields we send.
