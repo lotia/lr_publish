@@ -12,6 +12,8 @@
 function lr_publish_install() {
   drupal_set_message((t('Installing lr_publish.')));
   drupal_install_schema('lr_publish');
+  $weight = db_result(db_query("SELECT weight FROM {system} WHERE name = 'workflow'"));
+  db_query("UPDATE {system} SET weight = %d WHERE name = 'lr_publish'", $weight + 1);
 }
 
 /**
@@ -21,7 +23,7 @@ function lr_publish_uninstall() {
   drupal_uninstall_schema('lr_publish');
   // remove any configuration values. shamelessly stolen from
   // http://api.drupal.org/api/drupal/includes--bootstrap.inc/function/variable_del/6#comment-10934
-  $result = db_query("SELECT name from {variables} WHERE name LIKE 'lr_publish_%'");
+  $result = db_query("SELECT name from {variable} WHERE name LIKE 'lr_publish_%'");
   while ($var_name = db_result($result)) {
     variable_del($var_name);
   }
