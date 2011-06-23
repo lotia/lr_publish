@@ -46,14 +46,7 @@ function lr_publish_schema() {
         'description' => t('The primary identifier for a node.'),
         'type' => 'int',
         'unsigned' => TRUE,
-        'not null' => TRUE,),
-
-      'status' => array(
-        'description' => t('Boolean indicating whether the node is published (visible to non-administrators).'),
-        'type' => 'int',
-        'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 1,
       ),
 
       'published' => array(
@@ -69,9 +62,17 @@ function lr_publish_schema() {
         'not null' => TRUE,
         'default' => 0,
       ),
+
+      'docid' => array(
+        'description' => t('The doc ID returned on successful submission to the Learning Registry.'),
+        'type' => 'varchar',
+        'length' => 1024,
+        'not null' => TRUE,
+        'default' => '',
+      ),
     ),
     'indexes' => array(
-      'changed' => array('updated', 'status'),
+      'changed' => array('updated', 'status',),
     ),
     'primary key' => array('nid'),
   );
