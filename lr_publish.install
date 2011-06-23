@@ -48,18 +48,32 @@ function lr_publish_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,),
 
+      'status' => array(
+        'description' => t('Boolean indicating whether the node is published (visible to non-administrators).'),
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+
       'published' => array(
         'description' => t('The original date of publication to the LR node.'),
         'type' => 'int',
-        'not_null' => TRUE,
-        'default' => 0,),
+        'not null' => TRUE,
+        'default' => 0,
+      ),
 
       'updated' => array(
         'description' => t('The most recent update to the LR node.'),
         'type' => 'int',
-        'not_null' => TRUE,
-        'default' => 0,),
+        'not null' => TRUE,
+        'default' => 0,
+      ),
     ),
+    'indexes' => array(
+      'changed' => array('updated', 'status'),
+    ),
+    'primary key' => array('nid'),
   );
 
   return $schema;
