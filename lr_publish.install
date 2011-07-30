@@ -72,7 +72,7 @@ function lr_publish_schema() {
       ),
     ),
     'indexes' => array(
-      'changed' => array('updated', 'status',),
+      'changed' => array('updated',),
     ),
     'primary key' => array('nid'),
   );
