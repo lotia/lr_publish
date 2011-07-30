@@ -107,7 +107,8 @@ function _lr_publish_publish(&$node) {
     _lr_add_resource_data_to_submission($empty_submission, $resource_data);
   $resource_post_payload = json_encode($prepared_submission);
   //watchdog('lr_publish', $resource_post_payload, array(), WATCHDOG_DEBUG);
-  _lr_send_to_registry($resource_post_payload);
+  
+  _lr_send_to_registry($node->nid, $resource_post_payload);
 }
 
 
@@ -190,6 +191,8 @@ function _lr_get_node_url($nid) {
  *
  * All the specified nodeapi operations ($ops) call this function to actually send the data.
  *
+ * @param string $nid
+ *    A string containing the node ID for submission into the registry.
  * @param string $json
  *    A string containing the json object that will be sent to the registry node.
  * @param int $service_num
@@ -198,7 +201,7 @@ function _lr_get_node_url($nid) {
  *    1 - update
  *    2 - delete
  */
-function _lr_send_to_registry($json, $service_num = 0) {
+function _lr_send_to_registry($nid, $json, $service_num = 0) {
   $services = array(
     'publish',
     'update',
@@ -220,9 +223,13 @@ function _lr_send_to_registry($json, $service_num = 0) {
     CURLOPT_RETURNTRANSFER => 1,
     CURLOPT_HTTPHEADER => array("Content-type: application/json",),
   );
-  file_put_contents("/tmp/foo.json", $json);
+  // file_put_contents("/tmp/foo.json", $json);
   curl_setopt_array($ch, $curl_options);
-  curl_exec($ch);
+  $result=curl_exec($ch);
+
+  if ($result)
+   _lr_update_submission_status($nid, $result);
+
 }
 
 
@@ -361,4 +368,50 @@ function _lr_build_envelope() {
 function _lr_add_resource_data_to_submission($submission, $resource_data) {
   $submission->documents[] = $resource_data;
   return $submission;
+}
+
+
+/**
+ * Adds a status record in the lr_publish table to record submission
+ *
+ * @param int $nid
+ *    Drupal node ID of item to submit.
+ * @param string $result
+ *    JSON response from Learning Registry.
+ *
+ */
+function _lr_update_submission_status($nid, $result) {
+  if ($result) {
+
+    $result_array = json_decode($result);
+
+    if ($result_array->document_results[0]->OK) {
+    // check to see if submission already in database
+      $submission_check_result = db_query('SELECT COUNT(nid) as CNT FROM {lr_publish} WHERE nid = %d', $nid);
+      $count = db_fetch_object($submission_check_result);
+
+      if ($count->CNT) {
+      // Record already exists, update timestamp
+        db_query('UPDATE {lr_publish} SET updated=%d WHERE nid = %d', time(), $nid);
+      }
+      else {
+      // Insert new record
+
+      // fill parameter array
+        $data = array(
+            'nid' => $nid,
+            'published' => time(),
+            'docid' => $result_array->document_results[0]->doc_ID,
+        );
+        // write it to the database
+        drupal_write_record('lr_publish', $data);
+      }
+    }
+    else {
+      watchdog('lr_publish', "Error publishing node ID %nid to the registry.  Full response: %msg",
+          array ('%nid' => $nid,'%msg' => $result));
+    }
+
+  }
+
 }
