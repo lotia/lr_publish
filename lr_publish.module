@@ -23,7 +23,7 @@
 function lr_publish_help($path, $arg) {
   $output = '';
   switch ($path) {
-    case "admin/help#onthisdate":
+    case "admin/help#lr_publish":
       $output = '<p>' .
         t("Pushes Drupal node data to the specified Learning Registry node.") .
         '<p>';
