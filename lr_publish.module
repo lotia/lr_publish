@@ -243,7 +243,7 @@ function _lr_send_to_registry($nid, $json, $service_num = 0) {
 function _lr_def_resource_data ($content_info) {
   // values specified as immutable in the LR spec.
   define("LR_DOC_TYPE", "resource_data");
-  define("LR_DOC_VERSION", "0.21.0");
+  define("LR_DOC_VERSION", "0.23.0");
   define("LR_SUBMITTER_TYPE", "agent");
   define("LR_SUBMISSION_TOS", "yes");
   // commented since we aren't signing submissions
