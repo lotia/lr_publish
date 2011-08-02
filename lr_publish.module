@@ -107,7 +107,7 @@ function _lr_publish_publish(&$node) {
     _lr_add_resource_data_to_submission($empty_submission, $resource_data);
   $resource_post_payload = json_encode($prepared_submission);
   //watchdog('lr_publish', $resource_post_payload, array(), WATCHDOG_DEBUG);
-  
+
   _lr_send_to_registry($node->nid, $resource_post_payload);
 }
 
@@ -257,7 +257,6 @@ function _lr_def_resource_data ($content_info) {
   );
 
   $opt_res_fields = array(
-    'doc_ID',
     'submitter_timestamp',
     'submitter_TTL',
     'keys',
